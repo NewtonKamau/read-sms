@@ -1,48 +1,51 @@
 package com.example.myapplication2;
 
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Bundle;
 import android.provider.Telephony;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 
 public class MainActivity extends AppCompatActivity {
-    private Activity mActivity;
+    public static String[] appPermissions = new String[] {
+            Manifest.permission.READ_SMS,
+    };
+    final int APP_PERMISSIONS_REQUEST_RESULT = 1;
+    private static final Logger log = Logger.getLogger(MainActivity.class.getName());
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == 1) {
-            if (resultCode == RESULT_OK) {
-
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                    final String myPackageName = getPackageName();
-                    if (Telephony.Sms.getDefaultSmsPackage(mActivity).equals(myPackageName)) {
-
-                        List<Sms> lst = getAllSms();
-                    }
-                }
-            }
-        }
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        ActivityCompat.requestPermissions(MainActivity.this,
+                appPermissions,
+                APP_PERMISSIONS_REQUEST_RESULT);
+        List<Sms> lst = getAllSms();
+        listSms(lst);
     }
+
 
     public List<Sms> getAllSms() {
         List<Sms> lstSms = new ArrayList<Sms>();
         Sms objSms = new Sms();
         Uri message = Uri.parse("content://sms/");
-        ContentResolver cr = mActivity.getContentResolver();
+        ContentResolver cr = getApplicationContext().getContentResolver();
 
         Cursor c = cr.query(message, null, null, null, null);
-        mActivity.startManagingCursor(c);
         int totalSMS = c.getCount();
 
         if (c.moveToFirst()) {
@@ -65,15 +68,18 @@ public class MainActivity extends AppCompatActivity {
                 c.moveToNext();
             }
 
-                Toast.makeText(this, "No message to show!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "No message to show!", Toast.LENGTH_SHORT).show();
 
         }
-        // else {
-        // throw new RuntimeException("You have no SMS");
-        // }
         c.close();
 
         return lstSms;
+    }
+
+    private void listSms(List<Sms> smsList) {
+        for (Sms sms : smsList) {
+            log.info(" address: " + sms.getAddress() + "############# msg: " + sms.getMsg());
+        }
     }
 
 
