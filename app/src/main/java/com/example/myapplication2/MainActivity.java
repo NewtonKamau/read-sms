@@ -5,6 +5,7 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
@@ -14,16 +15,16 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
 
-public class MainActivity extends AppCompatActivity {
-    public static String[] appPermissions = new String[] {
-            Manifest.permission.READ_SMS,
-    };
+public class MainActivity extends AppCompatActivity  {
+    private static final int PERMISSION_REQUEST_READ_CONTACTS = 100;
+
     final int APP_PERMISSIONS_REQUEST_RESULT = 1;
     private static final Logger log = Logger.getLogger(MainActivity.class.getName());
 
@@ -31,9 +32,13 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        ActivityCompat.requestPermissions(MainActivity.this,
-                appPermissions,
-                APP_PERMISSIONS_REQUEST_RESULT);
+        int PERMISSION_CHECK = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS);
+
+        if (PERMISSION_CHECK == PackageManager.PERMISSION_GRANTED){
+            getAllSms();
+        }else{
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_SMS}, PERMISSION_REQUEST_READ_CONTACTS);
+        }
         List<Sms> lst = getAllSms();
         listSms(lst);
     }
